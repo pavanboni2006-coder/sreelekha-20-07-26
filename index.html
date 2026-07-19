@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Happy Birthday Akka ❤️ | Birthday Surprise</title>
+  <meta name="description" content="A magical glassmorphic birthday surprise website dedicated with endless love to my dear lovely Akka." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Great+Vibes&family=Outfit:wght@300;400;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/glassmorphism.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Fairy Lights Decoration Header -->
+  <div class="fairy-lights-container">
+    <div class="fairy-lights-wire"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+    <div class="light-bulb"></div>
+  </div>
+
+  <!-- Background Animated Canvases -->
+  <canvas id="canvas-hearts"></canvas>
+  <canvas id="canvas-confetti"></canvas>
+  <canvas id="canvas-fireworks"></canvas>
+
+  <!-- Floating Audio Controls -->
+  <div class="top-nav">
+    <button id="music-toggle" class="music-toggle-btn" title="Toggle Background Music">🎶</button>
+  </div>
+
+  <!-- Main Wrapper -->
+  <main>
+
+    <!-- HERO SECTION -->
+    <section class="hero-section">
+      <div class="hero-badge animate-float">✨ Celebrating The Best Sister In The World ✨</div>
+      <h1 class="hero-heading">🎉 Happy Birthday My Dear Lovely Akka❤️</h1>
+      <p class="hero-subheading">
+        "You are not just my sister... You are my best friend, my biggest supporter, and my forever inspiration."
+      </p>
+
+      <!-- Interactive 3D SVG Cake -->
+      <div class="cake-container" id="interactive-cake">
+        <div class="cake-wrapper">
+          <svg class="cake-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <!-- Cake Base Layer -->
+            <path d="M 30,140 Q 100,165 170,140 L 170,170 Q 100,195 30,170 Z" fill="#ffb6c1" />
+            <path d="M 30,140 Q 100,165 170,140 L 170,120 Q 100,145 30,120 Z" fill="#e6e6fa" />
+            
+            <!-- Frosting Cream Waves -->
+            <path d="M 30,120 Q 45,132 60,120 Q 75,132 90,120 Q 105,132 120,120 Q 135,132 150,120 Q 165,132 170,120" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" />
+            
+            <!-- Middle Layer -->
+            <path d="M 45,90 Q 100,110 155,90 L 155,120 Q 100,140 45,120 Z" fill="#ff7597" />
+            
+            <!-- Top Layer -->
+            <path d="M 60,65 Q 100,82 140,65 L 140,90 Q 100,107 60,90 Z" fill="#fff5f8" />
+            <ellipse cx="100" cy="65" rx="40" ry="17" fill="#ffd700" opacity="0.6" />
+
+            <!-- Candles -->
+            <!-- Candle 1 -->
+            <rect x="80" y="35" width="6" height="25" fill="#9370db" rx="2" />
+            <path class="candle-flame" d="M 83,22 C 79,28 83,34 83,34 C 83,34 87,28 83,22 Z" fill="#ff9d00" />
+            
+            <!-- Candle 2 (Center) -->
+            <rect x="97" y="28" width="6" height="30" fill="#ff7597" rx="2" />
+            <path class="candle-flame" d="M 100,15 C 96,21 100,27 100,27 C 100,27 104,21 100,15 Z" fill="#ffd700" />
+
+            <!-- Candle 3 -->
+            <rect x="114" y="35" width="6" height="25" fill="#9370db" rx="2" />
+            <path class="candle-flame" d="M 117,22 C 113,28 117,34 117,34 C 117,34 121,28 117,22 Z" fill="#ff9d00" />
+          </svg>
+        </div>
+        <div class="cake-hint" id="cake-hint">✨ Tap the cake to blow out candles! 🎂</div>
+      </div>
+
+      <div style="margin-top: 25px;">
+        <button id="celebrate-btn" class="btn-primary btn-gold">
+          <span>🎆 Celebrate Now</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- COUNTDOWN / SPECIAL DAY BANNER -->
+    <section class="countdown-section">
+      <div class="glass-card-gold special-day-card">
+        <h2 class="special-day-title">Today is Your Special Day 🎂</h2>
+        <p style="font-size: 1.1rem; color: #523e50; font-weight: 500;">
+          Let's fill every moment today with laughter, sweet treats, beautiful flowers, and unforgettable happiness!
+        </p>
+      </div>
+    </section>
+
+    <!-- PHOTO GALLERY SECTION -->
+    <section id="gallery" class="gallery-section">
+      <h2 class="section-title">Precious Memories Gallery 📸</h2>
+      <p class="section-subtitle">A collection of moments captured in time. Click any photo to expand, or upload your own pictures!</p>
+      
+      <div class="gallery-toolbar">
+        <div class="upload-btn-wrapper">
+          <button class="btn-primary">
+            <span>📷 Add / Replace Photos</span>
+          </button>
+          <input type="file" id="photo-upload-input" accept="image/*" multiple />
+        </div>
+      </div>
+
+      <div class="masonry-grid" id="gallery-grid">
+        <!-- Gallery starts completely empty until the user uploads images -->
+      </div>
+    </section>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox-modal" class="lightbox-modal">
+      <span id="lightbox-close" class="lightbox-close">&times;</span>
+      <div class="lightbox-content">
+        <img id="lightbox-img" src="" alt="Expanded Memory" />
+      </div>
+    </div>
+
+    <!-- MEMORY TIMELINE SECTION -->
+    <section id="timeline">
+      <h2 class="section-title">Our Memory Timeline ⏳</h2>
+      <p class="section-subtitle">From childhood giggles to lifelong milestones — click any card text to edit and add your personal touch!</p>
+
+      <div class="timeline-container">
+        <div class="timeline-line"></div>
+
+        <!-- Childhood Memories -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="glass-panel timeline-card">
+            <span class="timeline-icon">👶</span>
+            <h3 class="timeline-title">Childhood Memories</h3>
+            <p class="timeline-desc editable-text" contenteditable="true">
+              Playing together all day, sharing sweets, silly fights over small toys, and holding hands wherever we went.
+            </p>
+          </div>
+        </div>
+
+        <!-- School Memories -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="glass-panel timeline-card">
+            <span class="timeline-icon">🎒</span>
+            <h3 class="timeline-title">School Memories</h3>
+            <p class="timeline-desc editable-text" contenteditable="true">
+              You guiding me through homework, sharing lunch boxes, waiting for each other after class, and protecting me like a shield.
+            </p>
+          </div>
+        </div>
+
+        <!-- Family Trips -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="glass-panel timeline-card">
+            <span class="timeline-icon">✈️</span>
+            <h3 class="timeline-title">Family Trips</h3>
+            <p class="timeline-desc editable-text" contenteditable="true">
+              Singing loud songs during long road trips, taking endless selfies, exploring beautiful places, and making core memories.
+            </p>
+          </div>
+        </div>
+
+        <!-- Funny Moments -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="glass-panel timeline-card">
+            <span class="timeline-icon">😂</span>
+            <h3 class="timeline-title">Funny Moments</h3>
+            <p class="timeline-desc editable-text" contenteditable="true">
+              Uncontrollable midnight laughter, secret inside jokes that no one else understands, and harmless pranks at home!
+            </p>
+          </div>
+        </div>
+
+        <!-- Festivals -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="glass-panel timeline-card">
+            <span class="timeline-icon">🪔</span>
+            <h3 class="timeline-title">Festivals & Celebrations</h3>
+            <p class="timeline-desc editable-text" contenteditable="true">
+              Dressing up in matching gorgeous traditional wear, lighting diyas, cracking fireworks, and eating delicious festival treats together.
+            </p>
+          </div>
+        </div>
+
+        <!-- Special Achievements -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="glass-panel timeline-card">
+            <span class="timeline-icon">🏆</span>
+            <h3 class="timeline-title">Special Achievements</h3>
+            <p class="timeline-desc editable-text" contenteditable="true">
+              Cheering loudest for every exam cleared, every promotion earned, and watching you crush every goal with grace and pride!
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REASONS WHY YOU'RE AMAZING -->
+    <section id="reasons">
+      <h2 class="section-title">Reasons Why You're Amazing 💖</h2>
+      <p class="section-subtitle">Here are just a few of the countless things that make you so deeply loved and special!</p>
+
+      <div class="reasons-grid">
+        <div class="glass-panel reason-card">
+          <span class="reason-emoji">❤️</span>
+          <h3 class="reason-title">Caring</h3>
+        </div>
+
+        <div class="glass-panel reason-card">
+          <span class="reason-emoji">🌸</span>
+          <h3 class="reason-title">Kind</h3>
+        </div>
+
+        <div class="glass-panel reason-card">
+          <span class="reason-emoji">😊</span>
+          <h3 class="reason-title">Beautiful Smile</h3>
+        </div>
+
+        <div class="glass-panel reason-card">
+          <span class="reason-emoji">💪</span>
+          <h3 class="reason-title">Strong</h3>
+        </div>
+
+        <div class="glass-panel reason-card">
+          <span class="reason-emoji">✨</span>
+          <h3 class="reason-title">Inspirational</h3>
+        </div>
+
+        <div class="glass-panel reason-card">
+          <span class="reason-emoji">🏡</span>
+          <h3 class="reason-title">Family's Happiness</h3>
+        </div>
+
+        <div class="glass-panel reason-card">
+          <span class="reason-emoji">🌈</span>
+          <h3 class="reason-title">Always Supports Me</h3>
+        </div>
+
+        <div class="glass-panel reason-card">
+          <span class="reason-emoji">🥰</span>
+          <h3 class="reason-title">My Forever Favorite Person</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- BIRTHDAY LETTER SECTION -->
+    <section id="letter">
+      <h2 class="section-title">A Special Letter For You 💌</h2>
+      <div class="letter-wrapper">
+        <div class="glass-card-gold letter-card">
+          <div class="letter-badge">❤️</div>
+          <div class="letter-text">
+Happy Birthday Akka ❤️
+
+Thank you for always taking care of me, supporting me, and standing by my side. Every memory with you is precious, and I feel lucky to have a sister like you. I pray that your life is filled with happiness, success, good health, and endless smiles. May all your dreams come true. Stay happy and keep shining forever.
+
+Love You Always ❤️
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MUSIC SECTION & PLAYLIST -->
+    <section id="music">
+      <h2 class="section-title">Sister's Favorite Playlist 🎵</h2>
+      <p class="section-subtitle">Listen to sweet melodies, or click below to upload your sister's favorite songs!</p>
+
+      <div style="text-align: center; margin-bottom: 25px;">
+        <div class="upload-btn-wrapper">
+          <button class="btn-primary">
+            <span>🎶 Add Song (.mp3)</span>
+          </button>
+          <input type="file" id="music-file-input" accept="audio/*" />
+        </div>
+      </div>
+
+      <div class="playlist-grid" id="playlist-container">
+        <!-- Dynamically rendered tracks -->
+      </div>
+    </section>
+
+    <!-- WISHES WALL SECTION -->
+    <section id="wishes">
+      <h2 class="section-title">Wishes Wall 💌</h2>
+      <p class="section-subtitle">Heartfelt wishes from family members and loved ones.</p>
+
+      <div class="wishes-grid" id="wishes-grid">
+        <!-- Dynamically rendered wishes -->
+      </div>
+
+      <div style="text-align: center;">
+        <button id="add-wish-btn" class="btn-primary btn-gold">
+          <span>✍️ Add Your Wish</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ADD WISH MODAL -->
+    <div id="wish-modal" class="modal-overlay">
+      <div class="glass-panel modal-card">
+        <h3 class="modal-title">Write a Wish for Akka ❤️</h3>
+        <form id="wish-form">
+          <div class="form-group">
+            <label for="wish-author-input">Your Name / Relation:</label>
+            <input type="text" id="wish-author-input" placeholder="e.g. Amma, Nanna, Sibling" required />
+          </div>
+          <div class="form-group">
+            <label for="wish-text-input">Your Birthday Wish:</label>
+            <textarea id="wish-text-input" rows="4" placeholder="Write your sweet message..." required></textarea>
+          </div>
+          <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button type="button" id="wish-modal-close" class="btn-primary" style="background: #ccc; color: #333;">Cancel</button>
+            <button type="submit" class="btn-primary btn-gold">Post Wish ✨</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- GRAND FINALE SECTION -->
+    <section class="finale-section">
+      <h2 class="finale-glowing-text">
+        Once Again...<br />
+        Happy Birthday Akka ❤️
+      </h2>
+      <p class="finale-sibling-tag">
+        Made with Endless Love by Your Loving Sibling ❤️
+      </p>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 Birthday Surprise | Made with Love ❤️</p>
+  </footer>
+
+  <!-- JavaScript Modules -->
+  <script src="js/confetti.js"></script>
+  <script src="js/fireworks.js"></script>
+  <script src="js/cake.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/gallery.js"></script>
+  <script src="js/wishes.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
