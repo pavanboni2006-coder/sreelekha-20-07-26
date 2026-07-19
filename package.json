@@ -2,5 +2,8 @@
   "name": "sreelekha-birthday-surprise",
   "version": "1.0.0",
   "description": "Happy Birthday Surprise Website for Akka ❤️",
-  "private": true
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  }
 }
