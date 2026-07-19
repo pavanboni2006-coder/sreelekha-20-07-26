@@ -19,5 +19,24 @@
       "mtime": 1784476903192.4355
     }
   ],
-  "songs": []
+  "songs": [
+    {
+      "filename": "1784477485955__Thana_Navvulalo_Sreelekha_____.mp3",
+      "path": "public/assets/audio/1784477485955__Thana_Navvulalo_Sreelekha_____.mp3",
+      "title": "1784477485955  Thana Navvulalo Sreelekha     ",
+      "mtime": 1784477485957.4456
+    },
+    {
+      "filename": "1784477481171__Inthandham_Sreelekha___.mp3",
+      "path": "public/assets/audio/1784477481171__Inthandham_Sreelekha___.mp3",
+      "title": "1784477481171  Inthandham Sreelekha   ",
+      "mtime": 1784477481172.4348
+    },
+    {
+      "filename": "1784477475450__Nalone_Pongenu_Narmada___.mp3",
+      "path": "public/assets/audio/1784477475450__Nalone_Pongenu_Narmada___.mp3",
+      "title": "1784477475450  Nalone Pongenu Narmada   ",
+      "mtime": 1784477475450.8247
+    }
+  ]
 }

@@ -2,8 +2,9 @@
   "name": "sreelekha-birthday-surprise",
   "version": "1.0.0",
   "description": "Birthday Surprise Website for Akka",
-  "main": "server.js",
+  "main": "index.html",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "echo 'Static site ready for Vercel deployment'"
   }
 }

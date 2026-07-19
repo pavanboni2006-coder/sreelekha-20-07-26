@@ -1,4 +1,4 @@
-/* Gallery Controller — Files loaded and saved ONLY to public/assets/images/ */
+/* Gallery Controller — Works on Vercel, Local Server, and Static Hosts */
 document.addEventListener('DOMContentLoaded', () => {
   const lightboxModal = document.getElementById('lightbox-modal');
   const lightboxImg = document.getElementById('lightbox-img');
@@ -8,31 +8,68 @@ document.addEventListener('DOMContentLoaded', () => {
   const photoUploader = document.getElementById('photo-upload-input');
   const gallerySection = document.getElementById('gallery');
 
-  // Load photos list from public/assets/manifest.json or API
+  const STORAGE_KEY = 'akka_client_gallery_photos';
+
+  function getClientPhotos() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function saveClientPhoto(photoObj) {
+    try {
+      const existing = getClientPhotos();
+      existing.unshift(photoObj);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing.slice(0, 20)));
+    } catch(e) {}
+  }
+
+  function deleteClientPhoto(id) {
+    try {
+      const filtered = getClientPhotos().filter(p => p.id !== id && p.path !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+    } catch(e) {}
+  }
+
+  // Load photos list from public/assets/manifest.json, API, and client storage
   async function fetchGalleryPhotos() {
+    let manifestPhotos = [];
+
     try {
       const res = await fetch('public/assets/manifest.json?t=' + Date.now());
       if (res.ok) {
         const data = await res.json();
-        return data.photos || [];
+        manifestPhotos = data.photos || [];
       }
-    } catch (e) {
-      console.log('Manifest fetch fallback to API');
+    } catch (e) {}
+
+    if (manifestPhotos.length === 0) {
+      try {
+        const res = await fetch('/api/manifest');
+        if (res.ok) {
+          const data = await res.json();
+          manifestPhotos = data.photos || [];
+        }
+      } catch (e) {}
     }
 
-    try {
-      const res = await fetch('/api/manifest');
-      if (res.ok) {
-        const data = await res.json();
-        return data.photos || [];
+    const clientPhotos = getClientPhotos();
+
+    // Merge without duplicates
+    const combined = [...manifestPhotos];
+    clientPhotos.forEach(cp => {
+      if (!combined.some(mp => (mp.path === cp.path || mp.src === cp.src))) {
+        combined.push(cp);
       }
-    } catch (e) {
-      console.error('Could not fetch manifest', e);
-    }
-    return [];
+    });
+
+    return combined;
   }
 
-  // Render Gallery items strictly from public/assets/images/
+  // Render Gallery items
   async function renderGallery() {
     if (!galleryGrid) return;
     const photos = await fetchGalleryPhotos();
@@ -50,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="font-size: 3.2rem; margin-bottom: 15px;">📸</div>
         <h3 style="font-size: 1.5rem; color: #4a2840; margin-bottom: 10px;">Your Gallery is Empty</h3>
         <p style="color: var(--text-muted); font-size: 1rem; max-width: 450px; margin: 0 auto;">
-          Click the <strong>"📷 Add / Replace Photos"</strong> button above to upload photos directly to <code>public/assets/images/</code>!
+          Click the <strong>"📷 Add / Replace Photos"</strong> button above to upload your favorite memories with Akka!
         </p>
       `;
       galleryGrid.appendChild(emptyState);
@@ -60,11 +97,11 @@ document.addEventListener('DOMContentLoaded', () => {
     photos.forEach((photoData) => {
       const card = document.createElement('div');
       card.className = 'glass-panel gallery-card';
-      const imagePath = photoData.path || `public/assets/images/${photoData.filename}`;
+      const imagePath = photoData.src || photoData.path || `public/assets/images/${photoData.filename}`;
 
       card.innerHTML = `
         <img src="${imagePath}" alt="${photoData.title || 'Sister Memory'}" />
-        <button class="gallery-delete-btn" title="Delete Photo" data-path="${imagePath}">🗑️</button>
+        <button class="gallery-delete-btn" title="Delete Photo" data-id="${photoData.id || imagePath}">🗑️</button>
         <div class="gallery-card-overlay">
           <h3>${photoData.title || 'Precious Memory ❤️'}</h3>
           <p>Click to view full screen</p>
@@ -85,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (deleteBtn) {
         deleteBtn.addEventListener('click', async (e) => {
           e.stopPropagation();
+          deleteClientPhoto(photoData.id || imagePath);
           await deletePhotoFile(imagePath);
           renderGallery();
         });
@@ -101,62 +139,70 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ relativePath })
       });
-    } catch (e) {
-      console.error('Failed to delete file', e);
-    }
+    } catch (e) {}
   }
 
-  // File Upload Handler -> Uploads directly to backend public/assets/images/
-  async function uploadImageFile(file) {
-    return new Promise((resolve, reject) => {
+  // Canvas Image Compression helper
+  function compressImage(file) {
+    return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const res = await fetch('/api/upload-photo', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              filename: file.name,
-              base64Data: e.target.result
-            })
-          });
-          const data = await res.json();
-          if (res.ok && data.success) {
-            resolve(data);
-          } else {
-            reject(new Error(data.error || 'Upload failed'));
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1200;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+            else { w = Math.round((w * maxDim) / h); h = maxDim; }
           }
-        } catch (err) {
-          reject(err);
-        }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = () => resolve(e.target.result);
+        img.src = e.target.result;
       };
-      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.onerror = () => resolve(null);
       reader.readAsDataURL(file);
     });
   }
 
-  // Trigger file selection
-  if (addPhotoBtn && photoUploader) {
-    addPhotoBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      photoUploader.click();
-    });
-  }
-
+  // File Upload Handler
   async function handleFiles(files) {
     if (!files || files.length === 0) return;
 
     const fileList = Array.from(files);
     let successCount = 0;
-    let errorMsgs = [];
 
     for (const file of fileList) {
+      const compressedDataUrl = await compressImage(file);
+      if (!compressedDataUrl) continue;
+
+      const photoObj = {
+        id: 'photo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+        title: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
+        src: compressedDataUrl,
+        path: `public/assets/images/${file.name}`
+      };
+
+      saveClientPhoto(photoObj);
+
       try {
-        await uploadImageFile(file);
-        successCount++;
-      } catch (err) {
-        errorMsgs.push(err.message);
-      }
+        await fetch('/api/upload-photo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: file.name,
+            base64Data: compressedDataUrl
+          })
+        });
+      } catch(e) {}
+
+      successCount++;
     }
 
     if (successCount > 0) {
@@ -165,10 +211,13 @@ document.addEventListener('DOMContentLoaded', () => {
         window.confettiEngine.spawn(100);
       }
     }
+  }
 
-    if (errorMsgs.length > 0) {
-      alert("Upload notice:\n" + errorMsgs.join("\n"));
-    }
+  // Trigger file selection
+  if (addPhotoBtn && photoUploader) {
+    addPhotoBtn.addEventListener('click', (e) => {
+      photoUploader.click();
+    });
   }
 
   if (photoUploader) {
