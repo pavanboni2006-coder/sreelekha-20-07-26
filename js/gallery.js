@@ -1,4 +1,4 @@
-/* Gallery Controller — Works on Vercel, Local Server, and Static Hosts */
+/* Pure Static Gallery Controller — Compatible with Vercel, Netlify, and GitHub Pages */
 document.addEventListener('DOMContentLoaded', () => {
   const lightboxModal = document.getElementById('lightbox-modal');
   const lightboxImg = document.getElementById('lightbox-img');
@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const STORAGE_KEY = 'akka_client_gallery_photos';
 
+  // Local Storage helper for persistent client photos
   function getClientPhotos() {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
@@ -23,18 +24,20 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const existing = getClientPhotos();
       existing.unshift(photoObj);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing.slice(0, 20)));
-    } catch(e) {}
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing.slice(0, 25)));
+    } catch(e) {
+      console.warn("Client storage full", e);
+    }
   }
 
   function deleteClientPhoto(id) {
     try {
-      const filtered = getClientPhotos().filter(p => p.id !== id && p.path !== id);
+      const filtered = getClientPhotos().filter(p => p.id !== id && p.src !== id && p.path !== id);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
     } catch(e) {}
   }
 
-  // Load photos list from public/assets/manifest.json, API, and client storage
+  // Load photos list from static public/assets/manifest.json and client storage
   async function fetchGalleryPhotos() {
     let manifestPhotos = [];
 
@@ -46,22 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    if (manifestPhotos.length === 0) {
-      try {
-        const res = await fetch('/api/manifest');
-        if (res.ok) {
-          const data = await res.json();
-          manifestPhotos = data.photos || [];
-        }
-      } catch (e) {}
-    }
-
     const clientPhotos = getClientPhotos();
 
-    // Merge without duplicates
+    // Combine manifest photos and client photos without duplicates
     const combined = [...manifestPhotos];
     clientPhotos.forEach(cp => {
-      if (!combined.some(mp => (mp.path === cp.path || mp.src === cp.src))) {
+      if (!combined.some(mp => (mp.path === cp.path || mp.src === cp.src || mp.id === cp.id))) {
         combined.push(cp);
       }
     });
@@ -120,10 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
       // Delete click
       const deleteBtn = card.querySelector('.gallery-delete-btn');
       if (deleteBtn) {
-        deleteBtn.addEventListener('click', async (e) => {
+        deleteBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           deleteClientPhoto(photoData.id || imagePath);
-          await deletePhotoFile(imagePath);
           renderGallery();
         });
       }
@@ -132,17 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  async function deletePhotoFile(relativePath) {
-    try {
-      await fetch('/api/delete-file', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ relativePath })
-      });
-    } catch (e) {}
-  }
-
-  // Canvas Image Compression helper
+  // Canvas Image Compression helper (resizes images up to 10MB to ~1200px Data URLs)
   function compressImage(file) {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -190,18 +172,6 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       saveClientPhoto(photoObj);
-
-      try {
-        await fetch('/api/upload-photo', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: file.name,
-            base64Data: compressedDataUrl
-          })
-        });
-      } catch(e) {}
-
       successCount++;
     }
 
