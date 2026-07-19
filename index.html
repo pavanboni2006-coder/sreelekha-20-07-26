@@ -113,11 +113,11 @@
       <p class="section-subtitle">A collection of moments captured in time. Click any photo to expand, or upload your own pictures!</p>
       
       <div class="gallery-toolbar">
-        <div class="upload-btn-wrapper">
+        <div class="upload-btn-wrapper" style="position: relative; overflow: hidden; display: inline-block;">
           <button class="btn-primary" id="add-photo-btn" type="button">
             <span>📷 Add / Replace Photos</span>
           </button>
-          <input type="file" id="photo-upload-input" accept="image/jpeg,image/jpg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple style="display: none;" />
+          <input type="file" id="photo-upload-input" accept="image/jpeg,image/jpg,image/png,image/webp,.jpg,.jpeg,.png,.webp,image/*" multiple style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; display: block !important;" />
         </div>
       </div>
 
@@ -287,11 +287,11 @@ Love You Always ❤️
       <p class="section-subtitle">Listen to sweet melodies, or click below to upload your sister's favorite songs!</p>
 
       <div style="text-align: center; margin-bottom: 25px;">
-        <div class="upload-btn-wrapper">
+        <div class="upload-btn-wrapper" style="position: relative; overflow: hidden; display: inline-block;">
           <button class="btn-primary" id="add-music-btn" type="button">
             <span>🎶 Add Song (.mp3)</span>
           </button>
-          <input type="file" id="music-file-input" accept="audio/mpeg,audio/mp3,.mp3" multiple style="display: none;" />
+          <input type="file" id="music-file-input" accept=".mp3,audio/mpeg,audio/mp3,audio/*" multiple style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; display: block !important;" />
         </div>
       </div>
 

@@ -1,11 +1,11 @@
-/* MP3 Music Player Controller — MP3 files saved and loaded ONLY from public/assets/audio/ */
+/* MP3 Music Player Controller — Audio files saved and loaded ONLY from public/assets/audio/ */
 class BirthdayAudioPlayer {
   constructor() {
     this.isPlaying = false;
     this.audioElement = new Audio();
     this.audioElement.loop = false;
     
-    // Playlist starts completely empty
+    // Starts empty
     this.playlist = [];
     this.currentTrackIndex = -1;
 
@@ -19,9 +19,11 @@ class BirthdayAudioPlayer {
       const res = await fetch('public/assets/manifest.json?t=' + Date.now());
       if (res.ok) {
         const data = await res.json();
-        this.playlist = data.songs || [];
-        this.updatePlaylistUI();
-        return;
+        if (data.songs && data.songs.length > 0) {
+          this.playlist = data.songs;
+          this.updatePlaylistUI();
+          return;
+        }
       }
     } catch(e) {}
 
@@ -29,8 +31,10 @@ class BirthdayAudioPlayer {
       const res = await fetch('/api/manifest');
       if (res.ok) {
         const data = await res.json();
-        this.playlist = data.songs || [];
-        this.updatePlaylistUI();
+        if (data.songs && data.songs.length > 0) {
+          this.playlist = data.songs;
+          this.updatePlaylistUI();
+        }
       }
     } catch(e) {
       console.error('Could not fetch music manifest', e);
@@ -54,10 +58,8 @@ class BirthdayAudioPlayer {
     const addMusicBtn = document.getElementById('add-music-btn');
     const musicUploader = document.getElementById('music-file-input');
 
-    // Trigger input click when button is clicked
     if (addMusicBtn && musicUploader) {
       addMusicBtn.addEventListener('click', (e) => {
-        e.preventDefault();
         musicUploader.click();
       });
     }
@@ -65,63 +67,53 @@ class BirthdayAudioPlayer {
     if (musicUploader) {
       musicUploader.addEventListener('change', async (e) => {
         const files = Array.from(e.target.files);
-        if (files.length === 0) return;
+        if (!files || files.length === 0) return;
 
-        let uploadedTrackIndices = [];
+        let firstNewIndex = -1;
 
         for (const file of files) {
           // Validate .mp3 file extension strictly
-          const fileExt = file.name.split('.').pop().toLowerCase();
-          const isMp3Type = file.type === 'audio/mpeg' || file.type === 'audio/mp3' || file.type === 'audio/x-mp3';
+          const fileNameLower = file.name.toLowerCase();
+          const fileExt = fileNameLower.split('.').pop();
+          const isMp3 = fileExt === 'mp3' || file.type.includes('audio/mpeg') || file.type.includes('audio/mp3') || file.type === '';
 
-          if (fileExt !== 'mp3' && !isMp3Type) {
-            alert(`Error: "${file.name}" is not an MP3 file. Only .mp3 audio files are accepted.`);
+          if (!isMp3) {
+            alert(`Error: "${file.name}" is not an MP3 file. Only .mp3 audio files are allowed.`);
             continue;
           }
 
-          try {
-            const uploadRes = await this.uploadAudioFile(file);
-            const trackPath = uploadRes.path || `public/assets/audio/${file.name}`;
-            
-            // Add track to active playlist immediately
-            const trackObj = {
-              id: Date.now() + Math.random(),
-              filename: file.name,
-              title: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
-              path: trackPath,
-              src: trackPath
-            };
+          // Create immediate Blob URL so it plays instantly without waiting for server response
+          const blobUrl = URL.createObjectURL(file);
+          const trackTitle = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+          const relativePath = `public/assets/audio/${file.name}`;
 
-            // Avoid duplicate path entry
-            const existingIdx = this.playlist.findIndex(t => (t.path || t.src) === trackPath);
-            if (existingIdx !== -1) {
-              uploadedTrackIndices.push(existingIdx);
-            } else {
-              this.playlist.unshift(trackObj);
-              uploadedTrackIndices.push(0);
+          const trackObj = {
+            id: 'song_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6),
+            filename: file.name,
+            title: trackTitle,
+            path: relativePath,
+            src: blobUrl
+          };
+
+          // Push to playlist immediately
+          this.playlist.unshift(trackObj);
+          if (firstNewIndex === -1) firstNewIndex = 0;
+
+          // Background upload to public/assets/audio/
+          this.uploadAudioFile(file).then(res => {
+            if (res && res.path) {
+              trackObj.path = res.path;
+              trackObj.src = res.path;
             }
-
-          } catch (err) {
-            console.error('File upload error:', err);
-            // Fallback object URL if server is in static mode
-            const blobUrl = URL.createObjectURL(file);
-            const trackObj = {
-              id: Date.now() + Math.random(),
-              filename: file.name,
-              title: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
-              path: `public/assets/audio/${file.name}`,
-              src: blobUrl
-            };
-            this.playlist.unshift(trackObj);
-            uploadedTrackIndices.push(0);
-          }
+          }).catch(err => {
+            console.log('Background upload notice:', err);
+          });
         }
 
         this.updatePlaylistUI();
 
-        // Play the newly uploaded song immediately
-        if (uploadedTrackIndices.length > 0) {
-          this.playTrack(uploadedTrackIndices[0]);
+        if (firstNewIndex !== -1) {
+          this.playTrack(firstNewIndex);
           if (window.confettiEngine) {
             window.confettiEngine.spawn(100);
           }
@@ -162,7 +154,7 @@ class BirthdayAudioPlayer {
 
   togglePlay() {
     if (this.playlist.length === 0) {
-      alert("Please click '🎶 Add Song (.mp3)' to upload your favorite songs to public/assets/audio/ first!");
+      alert("Please click '🎶 Add Song (.mp3)' to upload your favorite songs first!");
       return;
     }
 
@@ -244,6 +236,9 @@ class BirthdayAudioPlayer {
     } catch(e) {}
 
     this.playlist.splice(index, 1);
+    if (this.playlist.length === 0) {
+      this.currentTrackIndex = -1;
+    }
     this.updatePlaylistUI();
   }
 
