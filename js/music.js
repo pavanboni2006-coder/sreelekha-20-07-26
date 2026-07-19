@@ -1,10 +1,11 @@
-/* Music Player — Audio files saved and loaded ONLY from public/assets/audio/ */
+/* MP3 Music Player Controller — MP3 files saved and loaded ONLY from public/assets/audio/ */
 class BirthdayAudioPlayer {
   constructor() {
     this.isPlaying = false;
     this.audioElement = new Audio();
     this.audioElement.loop = false;
     
+    // Playlist starts completely empty
     this.playlist = [];
     this.currentTrackIndex = -1;
 
@@ -50,24 +51,80 @@ class BirthdayAudioPlayer {
       }
     });
 
-    // Custom MP3 song uploader -> saves to public/assets/audio/
+    const addMusicBtn = document.getElementById('add-music-btn');
     const musicUploader = document.getElementById('music-file-input');
+
+    // Trigger input click when button is clicked
+    if (addMusicBtn && musicUploader) {
+      addMusicBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        musicUploader.click();
+      });
+    }
+
     if (musicUploader) {
       musicUploader.addEventListener('change', async (e) => {
         const files = Array.from(e.target.files);
         if (files.length === 0) return;
 
+        let uploadedTrackIndices = [];
+
         for (const file of files) {
-          if (file && file.type.startsWith('audio/')) {
-            await this.uploadAudioFile(file);
+          // Validate .mp3 file extension strictly
+          const fileExt = file.name.split('.').pop().toLowerCase();
+          const isMp3Type = file.type === 'audio/mpeg' || file.type === 'audio/mp3' || file.type === 'audio/x-mp3';
+
+          if (fileExt !== 'mp3' && !isMp3Type) {
+            alert(`Error: "${file.name}" is not an MP3 file. Only .mp3 audio files are accepted.`);
+            continue;
+          }
+
+          try {
+            const uploadRes = await this.uploadAudioFile(file);
+            const trackPath = uploadRes.path || `public/assets/audio/${file.name}`;
+            
+            // Add track to active playlist immediately
+            const trackObj = {
+              id: Date.now() + Math.random(),
+              filename: file.name,
+              title: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
+              path: trackPath,
+              src: trackPath
+            };
+
+            // Avoid duplicate path entry
+            const existingIdx = this.playlist.findIndex(t => (t.path || t.src) === trackPath);
+            if (existingIdx !== -1) {
+              uploadedTrackIndices.push(existingIdx);
+            } else {
+              this.playlist.unshift(trackObj);
+              uploadedTrackIndices.push(0);
+            }
+
+          } catch (err) {
+            console.error('File upload error:', err);
+            // Fallback object URL if server is in static mode
+            const blobUrl = URL.createObjectURL(file);
+            const trackObj = {
+              id: Date.now() + Math.random(),
+              filename: file.name,
+              title: file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
+              path: `public/assets/audio/${file.name}`,
+              src: blobUrl
+            };
+            this.playlist.unshift(trackObj);
+            uploadedTrackIndices.push(0);
           }
         }
 
-        await this.loadPlaylistFromManifest();
+        this.updatePlaylistUI();
 
-        // Auto-play first uploaded song if not playing
-        if (!this.isPlaying && this.playlist.length > 0 && this.currentTrackIndex === -1) {
-          this.playTrack(0);
+        // Play the newly uploaded song immediately
+        if (uploadedTrackIndices.length > 0) {
+          this.playTrack(uploadedTrackIndices[0]);
+          if (window.confettiEngine) {
+            window.confettiEngine.spawn(100);
+          }
         }
 
         musicUploader.value = '';
@@ -125,7 +182,7 @@ class BirthdayAudioPlayer {
     const currentTrack = this.playlist[this.currentTrackIndex];
 
     if (currentTrack) {
-      const trackSrc = currentTrack.path || `public/assets/audio/${currentTrack.filename}`;
+      const trackSrc = currentTrack.src || currentTrack.path || `public/assets/audio/${currentTrack.filename}`;
       if (this.audioElement.src !== trackSrc) {
         this.audioElement.src = trackSrc;
       }
@@ -160,7 +217,7 @@ class BirthdayAudioPlayer {
     if (index < 0 || index >= this.playlist.length) return;
     this.currentTrackIndex = index;
     const currentTrack = this.playlist[index];
-    const trackSrc = currentTrack.path || `public/assets/audio/${currentTrack.filename}`;
+    const trackSrc = currentTrack.src || currentTrack.path || `public/assets/audio/${currentTrack.filename}`;
     this.audioElement.src = trackSrc;
     this.play();
   }
@@ -186,7 +243,8 @@ class BirthdayAudioPlayer {
       });
     } catch(e) {}
 
-    await this.loadPlaylistFromManifest();
+    this.playlist.splice(index, 1);
+    this.updatePlaylistUI();
   }
 
   updatePlaylistUI() {
@@ -204,7 +262,7 @@ class BirthdayAudioPlayer {
       emptyCard.style.borderRadius = '22px';
       emptyCard.innerHTML = `
         <div style="font-size: 2.8rem; margin-bottom: 10px;">🎵</div>
-        <h4 style="font-size: 1.3rem; color: #4a2840; margin-bottom: 8px;">No Songs Added Yet</h4>
+        <h4 style="font-size: 1.3rem; color: #4a2840; margin-bottom: 8px;">No MP3 Songs Added Yet</h4>
         <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 400px; margin: 0 auto;">
           Click the <strong>"🎶 Add Song (.mp3)"</strong> button above to upload songs to <code>public/assets/audio/</code>!
         </p>
@@ -222,7 +280,7 @@ class BirthdayAudioPlayer {
         <div class="track-icon">${isCurrent && this.isPlaying ? '▶️' : '🎵'}</div>
         <div class="track-info" style="flex: 1;">
           <h4>${track.title || track.filename}</h4>
-          <p>Saved in public/assets/audio/</p>
+          <p>Relative path: <code>${track.path || 'public/assets/audio/' + track.filename}</code></p>
         </div>
         <button class="track-delete-btn" title="Remove song" style="background: transparent; border: none; font-size: 1.1rem; cursor: pointer; opacity: 0.7; transition: opacity 0.2s;" data-index="${index}">🗑️</button>
       `;

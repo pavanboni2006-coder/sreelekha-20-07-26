@@ -1,4 +1,23 @@
 {
-  "photos": [],
+  "photos": [
+    {
+      "filename": "1784476914322_A_Beautiful_Soul__.jpeg",
+      "path": "public/assets/images/1784476914322_A_Beautiful_Soul__.jpeg",
+      "title": "1784476914322 A Beautiful Soul  ",
+      "mtime": 1784476914323.6072
+    },
+    {
+      "filename": "1784476908917_A_Bond_That_Never_Fades__.jpeg",
+      "path": "public/assets/images/1784476908917_A_Bond_That_Never_Fades__.jpeg",
+      "title": "1784476908917 A Bond That Never Fades  ",
+      "mtime": 1784476908918.0825
+    },
+    {
+      "filename": "1784476903191_My_Happy_Place__.jpeg",
+      "path": "public/assets/images/1784476903191_My_Happy_Place__.jpeg",
+      "title": "1784476903191 My Happy Place  ",
+      "mtime": 1784476903192.4355
+    }
+  ],
   "songs": []
 }
